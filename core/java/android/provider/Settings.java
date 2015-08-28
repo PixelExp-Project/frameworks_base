@@ -5539,6 +5539,13 @@ public final class Settings {
          public static final String NETWORK_TRAFFIC_VIEW_LOCATION = "network_traffic_view_location";
 
         /**
+         * Toast icon
+         * @hide
+         */
+        @Readable
+        public static final String TOAST_ICON = "toast_icon";
+
+        /**
          * These are all public system settings
          *
          * @hide

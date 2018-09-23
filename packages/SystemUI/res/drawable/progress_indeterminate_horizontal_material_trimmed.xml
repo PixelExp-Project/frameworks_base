@@ -21,3 +21,4 @@
         android:name="rect_grp"
         android:animation="@anim/progress_indeterminate_horizontal_rect" />
 </animated-vector>
+

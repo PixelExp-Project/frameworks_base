@@ -248,7 +248,7 @@ public class TunerServiceImpl extends TunerService {
         for (String key : mTunableLookup.keySet()) {
             String value = Settings.Secure.getStringForUser(mContentResolver, key,
                     mCurrentUser);
-           if (ArrayUtils.contains(RESET_EXCEPTION_LIST, key))
+           if (ArrayUtils.contains(RESET_EXCEPTION_LIST, key) || key.startsWith("system:"))
                 continue;
             for (Tunable tunable : mTunableLookup.get(key)) {
                 if (tunable != null) {

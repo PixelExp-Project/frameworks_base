@@ -26,4 +26,11 @@
     <!-- Whether devices suports in-display fingerprint when screen is off -->
     <bool name="config_supportsScreenOffUdfps">false</bool>
 
+    <!-- Global Actions prefs list -->
+    <string-array translatable="false" name="custom_config_globalActionsList">
+        <item>emergency</item>
+        <item>power</item>
+        <item>restart</item>
+        <item>logout</item>
+    </string-array>
 </resources>

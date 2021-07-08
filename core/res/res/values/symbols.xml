@@ -1,3 +1,4 @@
+
 <!--
 /* Copyright 2012, The Android Open Source Project
 **
@@ -4489,4 +4490,7 @@
   <java-symbol type="array" name="config_roundedCornerBottomRadiusAdjustmentArray" />
   <java-symbol type="bool" name="config_secondaryBuiltInDisplayIsRound" />
   <java-symbol type="array" name="config_builtInDisplayIsRoundArray" />
+
+  <!-- For dynamic default font styles -->
+  <java-symbol type="string" name="config_bodyFontFamily" />
 </resources>

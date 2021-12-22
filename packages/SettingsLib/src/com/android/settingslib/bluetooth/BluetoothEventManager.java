@@ -18,6 +18,7 @@ package com.android.settingslib.bluetooth;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
@@ -41,7 +42,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
+import java.util.UUID;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 /**
  * BluetoothEventManager receives broadcasts and callbacks from the Bluetooth
  * API and dispatches the event on the UI thread to the right class in the
@@ -61,6 +64,8 @@ public class BluetoothEventManager {
     private final android.os.Handler mReceiverHandler;
     private final UserHandle mUserHandle;
     private final Context mContext;
+    private final String ACT_BROADCAST_SOURCE_INFO =
+          "android.bluetooth.BroadcastAudioSAManager.action.BROADCAST_SOURCE_INFO";
 
     interface Handler {
         void onReceive(Context context, Intent intent, BluetoothDevice device);
@@ -109,6 +114,8 @@ public class BluetoothEventManager {
         addHandler(BluetoothDevice.ACTION_CLASS_CHANGED, new ClassChangedHandler());
         addHandler(BluetoothDevice.ACTION_UUID, new UuidChangedHandler());
         addHandler(BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED, new BatteryLevelChangedHandler());
+        addHandler(BluetoothHeadset.ACTION_HF_TWSP_BATTERY_STATE_CHANGED ,
+                  new TwspBatteryLevelChangedHandler());
 
         // Active device broadcasts
         addHandler(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED, new ActiveDeviceChangedHandler());
@@ -125,6 +132,24 @@ public class BluetoothEventManager {
         // ACL connection changed broadcasts
         addHandler(BluetoothDevice.ACTION_ACL_CONNECTED, new AclStateChangedHandler());
         addHandler(BluetoothDevice.ACTION_ACL_DISCONNECTED, new AclStateChangedHandler());
+        addHandler(BluetoothA2dp.ACTION_CODEC_CONFIG_CHANGED, new A2dpCodecConfigChangedHandler());
+        Object sourceInfoHandler = null;
+        try {
+           Class<?> classSourceInfoHandler =
+               Class.forName("com.android.settingslib.bluetooth.BroadcastSourceInfoHandler");
+           Constructor ctor;
+           ctor = classSourceInfoHandler.getDeclaredConstructor(
+                      new Class[] {CachedBluetoothDeviceManager.class});
+           sourceInfoHandler = ctor.newInstance(mDeviceManager);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                  | InstantiationException | InvocationTargetException e) {
+              e.printStackTrace();
+        }
+        if (sourceInfoHandler != null) {
+           Log.d(TAG, "adding SourceInfo Handler");
+           addHandler(ACT_BROADCAST_SOURCE_INFO,
+                    (Handler)sourceInfoHandler);
+        }
 
         registerAdapterIntentReceiver();
     }
@@ -239,6 +264,33 @@ public class BluetoothEventManager {
         }
     }
 
+    private void dispatchA2dpCodecConfigChanged(CachedBluetoothDevice cachedDevice,
+            BluetoothCodecStatus codecStatus) {
+        for (BluetoothCallback callback : mCallbacks) {
+            callback.onA2dpCodecConfigChanged(cachedDevice, codecStatus);
+        }
+    }
+
+    protected void dispatchNewGroupFound(
+            CachedBluetoothDevice cachedDevice, int groupId, UUID setPrimaryServiceUuid) {
+        synchronized(mCallbacks) {
+            updateCacheDeviceInfo(groupId, cachedDevice);
+            for (BluetoothCallback callback : mCallbacks) {
+                callback.onNewGroupFound(cachedDevice, groupId,
+                        setPrimaryServiceUuid);
+            }
+        }
+    }
+
+    protected void dispatchGroupDiscoveryStatusChanged(int groupId,
+            int status, int reason) {
+        synchronized(mCallbacks) {
+            for (BluetoothCallback callback : mCallbacks) {
+                callback.onGroupDiscoveryStatusChanged(groupId, status, reason);
+            }
+        }
+    }
+
     @VisibleForTesting
     void addHandler(String action, Handler handler) {
         mHandlerMap.put(action, handler);
@@ -343,6 +395,21 @@ public class BluetoothEventManager {
                 cachedDevice = mDeviceManager.addDevice(device);
             }
 
+            if(bondState == BluetoothDevice.BOND_BONDED) {
+                int groupId  = intent.getIntExtra(BluetoothDevice.EXTRA_GROUP_ID,
+                        BluetoothDevice.ERROR);
+                if (groupId != BluetoothDevice.ERROR && groupId >= 0) {
+                    updateCacheDeviceInfo(groupId, cachedDevice);
+                } else if (intent.getBooleanExtra(BluetoothDevice.EXTRA_IS_PRIVATE_ADDRESS,
+                        false)) {
+                    /*
+                     * Do not show private address in UI, just ignore assuming remaining
+                     * events will receive on public address (connection, disconnection)
+                     */
+                    Log.d(TAG, "Hide showing private address in UI  " + cachedDevice);
+                    updateIgnoreDeviceFlag(cachedDevice);
+                }
+            }
             for (BluetoothCallback callback : mCallbacks) {
                 callback.onDeviceBondStateChanged(cachedDevice, bondState);
             }
@@ -424,6 +491,24 @@ public class BluetoothEventManager {
         }
     }
 
+    private class TwspBatteryLevelChangedHandler implements Handler {
+        public void onReceive(Context context, Intent intent,
+                BluetoothDevice device) {
+            CachedBluetoothDevice cachedDevice = mDeviceManager.findDevice(device);
+            if (cachedDevice != null) {
+                cachedDevice.mTwspBatteryState =
+                          intent.getIntExtra(
+                              BluetoothHeadset.EXTRA_HF_TWSP_BATTERY_STATE, -1);
+                cachedDevice.mTwspBatteryLevel =
+                          intent.getIntExtra(
+                              BluetoothHeadset.EXTRA_HF_TWSP_BATTERY_LEVEL, -1);
+                Log.i(TAG, cachedDevice + ": mTwspBatteryState: " + cachedDevice.mTwspBatteryState
+                    + "mTwspBatteryLevel: " + cachedDevice.mTwspBatteryLevel);
+                cachedDevice.refresh();
+            }
+        }
+    }
+
     private class ActiveDeviceChangedHandler implements Handler {
         @Override
         public void onReceive(Context context, Intent intent, BluetoothDevice device) {
@@ -500,4 +585,50 @@ public class BluetoothEventManager {
             dispatchAudioModeChanged();
         }
     }
+
+    private class A2dpCodecConfigChangedHandler implements Handler {
+
+        @Override
+        public void onReceive(Context context, Intent intent, BluetoothDevice device) {
+            final String action = intent.getAction();
+            if (action == null) {
+                Log.w(TAG, "A2dpCodecConfigChangedHandler: action is null");
+                return;
+            }
+
+            CachedBluetoothDevice cachedDevice = mDeviceManager.findDevice(device);
+            if (cachedDevice == null) {
+                Log.w(TAG, "A2dpCodecConfigChangedHandler: device is null");
+                return;
+            }
+
+            BluetoothCodecStatus codecStatus = intent.getParcelableExtra(
+                    BluetoothCodecStatus.EXTRA_CODEC_STATUS);
+            Log.d(TAG, "A2dpCodecConfigChangedHandler: device=" + device +
+                    ", codecStatus=" + codecStatus);
+            dispatchA2dpCodecConfigChanged(cachedDevice, codecStatus);
+        }
+    }
+
+    private void updateCacheDeviceInfo(int groupId, CachedBluetoothDevice cachedDevice) {
+        BluetoothDevice device = cachedDevice.getDevice();
+        boolean isGroup = cachedDevice.isGroupDevice();
+        Log.d(TAG, "updateCacheDeviceInfo groupId " + groupId
+                + ", cachedDevice :" + cachedDevice + ", name :" + cachedDevice.getName()
+                +" isGroup :" + isGroup + " groupId " + cachedDevice.getSetId());
+        if (isGroup) {
+            if (groupId !=  cachedDevice.getSetId()) {
+                Log.d(TAG, "groupId mismatch ignore" + cachedDevice.getSetId());
+                return;
+            }
+            Log.d(TAG, "updateCacheDeviceInfo update ignored ");
+        } else {
+            cachedDevice.setDeviceType(groupId);
+        }
+    }
+
+    private void updateIgnoreDeviceFlag(CachedBluetoothDevice cachedDevice) {
+        cachedDevice.setDeviceType(CachedBluetoothDevice.PRIVATE_ADDR);
+    }
+
 }

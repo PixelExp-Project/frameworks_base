@@ -19,6 +19,7 @@ package com.android.settingslib.bluetooth;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDeviceGroup;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
@@ -49,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 
 /**
@@ -85,15 +88,17 @@ public class LocalBluetoothProfileManager {
 
     private final Context mContext;
     private final CachedBluetoothDeviceManager mDeviceManager;
-    private final BluetoothEventManager mEventManager;
+    protected final BluetoothEventManager mEventManager;
 
     private A2dpProfile mA2dpProfile;
     private A2dpSinkProfile mA2dpSinkProfile;
+    private DeviceGroupClientProfile mGroupClientProfile;
     private HeadsetProfile mHeadsetProfile;
     private HfpClientProfile mHfpClientProfile;
     private MapProfile mMapProfile;
     private MapClientProfile mMapClientProfile;
     private HidProfile mHidProfile;
+    private LocalBluetoothProfile mBCProfile;
     private HidDeviceProfile mHidDeviceProfile;
     private OppProfile mOppProfile;
     private PanProfile mPanProfile;
@@ -102,6 +107,8 @@ public class LocalBluetoothProfileManager {
     private HearingAidProfile mHearingAidProfile;
     private SapProfile mSapProfile;
 
+    private static final String BC_CONNECTION_STATE_CHANGED =
+            "android.bluetooth.bc.profile.action.CONNECTION_STATE_CHANGED";
     /**
      * Mapping from profile name, e.g. "HEADSET" to profile object.
      */
@@ -213,12 +220,35 @@ public class LocalBluetoothProfileManager {
             addProfile(mPbapClientProfile, PbapClientProfile.NAME,
                     BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         }
+        if (mBCProfile == null && supportedList.contains(BluetoothProfile.BC_PROFILE)) {
+            if (DEBUG) Log.d(TAG, "Adding local BC profile");
+           try {
+              Class<?> classBCProfile =
+                  Class.forName("com.android.settingslib.bluetooth.BCProfile");
+              Constructor ctor;
+              ctor = classBCProfile.getDeclaredConstructor(new Class[] {Context.class,
+                                                          CachedBluetoothDeviceManager.class,
+                                                          LocalBluetoothProfileManager.class});
+              mBCProfile = (LocalBluetoothProfile)ctor.newInstance(mContext, mDeviceManager, this);
+              addProfile(mBCProfile, "BCProfile",
+                    BC_CONNECTION_STATE_CHANGED);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
+                  | InstantiationException | InvocationTargetException e) {
+              e.printStackTrace();
+            }
+        }
         if (mSapProfile == null && supportedList.contains(BluetoothProfile.SAP)) {
             if (DEBUG) {
                 Log.d(TAG, "Adding local SAP profile");
             }
             mSapProfile = new SapProfile(mContext, mDeviceManager, this);
             addProfile(mSapProfile, SapProfile.NAME, BluetoothSap.ACTION_CONNECTION_STATE_CHANGED);
+        }
+        if (mGroupClientProfile == null && supportedList.contains(BluetoothProfile.GROUP_CLIENT)) {
+            if (DEBUG) Log.d(TAG, "Adding local GROUP CLIENT profile");
+            mGroupClientProfile = new DeviceGroupClientProfile(mContext, mDeviceManager, this);
+            addProfile(mGroupClientProfile, mGroupClientProfile.NAME,
+                    BluetoothDeviceGroup.ACTION_CONNECTION_STATE_CHANGED);
         }
         mEventManager.registerProfileIntentReceiver();
     }
@@ -445,6 +475,11 @@ public class LocalBluetoothProfileManager {
         return mSapProfile;
     }
 
+    public LocalBluetoothProfile getBCProfile() {
+        Log.d(TAG, "getBCProfile returning: " + mBCProfile);
+        return mBCProfile;
+    }
+
     @VisibleForTesting
     HidProfile getHidProfile() {
         return mHidProfile;
@@ -455,6 +490,9 @@ public class LocalBluetoothProfileManager {
         return mHidDeviceProfile;
     }
 
+    public DeviceGroupClientProfile getDeviceGroupClientProfile() {
+        return mGroupClientProfile;
+    }
     /**
      * Fill in a list of LocalBluetoothProfile objects that are supported by
      * the local device and the remote device.
@@ -569,6 +607,11 @@ public class LocalBluetoothProfileManager {
             removedProfiles.remove(mSapProfile);
         }
 
+        if (mBCProfile != null) {
+            profiles.add(mBCProfile);
+            removedProfiles.remove(mBCProfile);
+            if(DEBUG) Log.d(TAG, "BC profile removed");
+        }
         if (DEBUG) {
             Log.d(TAG,"New Profiles" + profiles.toString());
         }

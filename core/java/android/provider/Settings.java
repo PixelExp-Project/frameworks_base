@@ -5754,6 +5754,13 @@ public final class Settings {
         public static final String TOAST_ICON = "toast_icon";
 
         /**
+         * Whether to show battery estimates in QS
+         * @hide
+         */
+        @Readable
+        public static final String QS_SHOW_BATTERY_ESTIMATE = "qs_show_battery_estimate";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *

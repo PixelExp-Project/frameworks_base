@@ -3071,6 +3071,11 @@ public class WindowManagerService extends IWindowManager.Stub
         syncInputTransactions(true /* waitForAnimations */);
     }
 
+    @Override
+    public boolean isAppTransitionStateIdle() {
+        return getDefaultDisplayContentLocked().mAppTransition.isIdle();
+    }
+
     /**
      * Notifies activity manager that some Keyguard flags have changed and that it needs to
      * reevaluate the visibilities of the activities.
@@ -6690,6 +6695,7 @@ public class WindowManagerService extends IWindowManager.Stub
         return mRoot.getDisplayContent(DEFAULT_DISPLAY);
     }
 
+    @Override
     public void onOverlayChanged() {
         synchronized (mGlobalLock) {
             mRoot.forAllDisplays(displayContent -> {

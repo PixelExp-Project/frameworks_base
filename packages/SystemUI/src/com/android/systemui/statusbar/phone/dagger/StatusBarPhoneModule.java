@@ -104,9 +104,11 @@ import com.android.systemui.statusbar.policy.ExtensionController;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.RemoteInputQuickSettingsDisabler;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.UserInfoControllerImpl;
 import com.android.systemui.statusbar.policy.UserSwitcherController;
 import com.android.systemui.volume.VolumeComponent;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.wmshell.BubblesManager;
 import com.android.wm.shell.bubbles.Bubbles;
 import com.android.wm.shell.legacysplitscreen.LegacySplitScreen;
@@ -222,7 +224,9 @@ public interface StatusBarPhoneModule {
             FeatureFlags featureFlags,
             KeyguardUnlockAnimationController keyguardUnlockAnimationController,
             UnlockedScreenOffAnimationController unlockedScreenOffAnimationController,
-            Optional<StartingSurface> startingSurfaceOptional) {
+            Optional<StartingSurface> startingSurfaceOptional,
+            TunerService tunerService,
+            BurnInProtectionController burnInProtectionController) {
         return new StatusBar(
                 context,
                 notificationsController,
@@ -312,6 +316,8 @@ public interface StatusBarPhoneModule {
                 featureFlags,
                 keyguardUnlockAnimationController,
                 unlockedScreenOffAnimationController,
-                startingSurfaceOptional);
+                startingSurfaceOptional,
+                tunerService,
+                burnInProtectionController);
     }
 }

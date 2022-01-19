@@ -1794,11 +1794,9 @@
   <java-symbol type="integer" name="config_carDockRotation" />
   <java-symbol type="integer" name="config_defaultUiModeType" />
   <java-symbol type="integer" name="config_deskDockRotation" />
-  <java-symbol type="integer" name="config_doubleTapOnHomeBehavior" />
   <java-symbol type="integer" name="config_lidKeyboardAccessibility" />
   <java-symbol type="integer" name="config_lidNavigationAccessibility" />
   <java-symbol type="integer" name="config_lidOpenRotation" />
-  <java-symbol type="integer" name="config_longPressOnHomeBehavior" />
   <java-symbol type="layout" name="global_actions" />
   <java-symbol type="layout" name="global_actions_item" />
   <java-symbol type="layout" name="global_actions_silent_mode" />
@@ -4431,7 +4429,7 @@
 
   <java-symbol type="dimen" name="config_wallpaperDimAmount" />
 
-  <java-symbol type="bool" name="config_volumeShowRemoteSessions" />
+  <java-symbol type="bool" name="config_volumeAdjustmentForRemoteGroupSessions" />
 
   <java-symbol type="integer" name="config_customizedMaxCachedProcesses" />
 

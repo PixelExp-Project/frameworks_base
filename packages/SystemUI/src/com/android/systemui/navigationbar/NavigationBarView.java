@@ -78,6 +78,7 @@ import com.android.systemui.navigationbar.buttons.NearestTouchFrame;
 import com.android.systemui.navigationbar.buttons.RotationContextButton;
 import com.android.systemui.navigationbar.gestural.EdgeBackGestureHandler;
 import com.android.systemui.navigationbar.gestural.FloatingRotationButton;
+import com.android.systemui.navigationbar.gestural.NavigationHandle;
 import com.android.systemui.navigationbar.gestural.RegionSamplingHelper;
 import com.android.systemui.recents.OverviewProxyService;
 import com.android.systemui.recents.Recents;
@@ -108,6 +109,7 @@ public class NavigationBarView extends FrameLayout implements
     private final int mNavColorSampleMargin;
     private final SysUiState mSysUiFlagContainer;
 
+    // The current view is one of mHorizontal or mVertical depending on the current configuration
     View mCurrentView = null;
     private View mVertical;
     private View mHorizontal;
@@ -180,6 +182,13 @@ public class NavigationBarView extends FrameLayout implements
      */
     @Nullable
     private Rect mOrientedHandleSamplingRegion;
+
+    private int mBasePaddingBottom;
+    private int mBasePaddingLeft;
+    private int mBasePaddingRight;
+    private int mBasePaddingTop;
+
+    private ViewGroup mNavigationBarContents;
 
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
@@ -370,12 +379,6 @@ public class NavigationBarView extends FrameLayout implements
         }
     }
 
-    @Override
-    protected boolean onSetAlpha(int alpha) {
-        Log.e(TAG, "onSetAlpha", new Throwable());
-        return super.onSetAlpha(alpha);
-    }
-
     public void setAutoHideController(AutoHideController autoHideController) {
         mAutoHideController = autoHideController;
     }
@@ -472,6 +475,18 @@ public class NavigationBarView extends FrameLayout implements
 
     public View getCurrentView() {
         return mCurrentView;
+    }
+
+    /**
+     * Applies {@param consumer} to each of the nav bar views.
+     */
+    public void forEachView(Consumer<View> consumer) {
+        if (mVertical != null) {
+            consumer.accept(mVertical);
+        }
+        if (mHorizontal != null) {
+            consumer.accept(mHorizontal);
+        }
     }
 
     public RotationButtonController getRotationButtonController() {
@@ -930,11 +945,38 @@ public class NavigationBarView extends FrameLayout implements
         mContextualButtonGroup.setButtonVisibility(R.id.accessibility_button, visible);
     }
 
+    public void shiftNavigationBarItems(int horizontalShift, int verticalShift) {
+        if (mNavigationBarContents == null) {
+            return;
+        }
+        if (isGesturalMode(mNavBarMode)) {
+            final NavigationHandle handle = (NavigationHandle) getHomeHandle().getCurrentView();
+            if (handle != null) {
+                handle.shiftHandle(verticalShift);
+            }
+            return;
+        }
+        mNavigationBarContents.setPaddingRelative(
+            mBasePaddingLeft + horizontalShift,
+            mBasePaddingTop + verticalShift,
+            mBasePaddingRight + horizontalShift,
+            mBasePaddingBottom - verticalShift
+        );
+        invalidate();
+    }
+
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
         mNavigationInflaterView = findViewById(R.id.navigation_inflater);
         mNavigationInflaterView.setButtonDispatchers(mButtonDispatchers);
+
+        mNavigationBarContents = (ViewGroup) findViewById(R.id.nav_buttons);
+
+        mBasePaddingLeft = mNavigationBarContents.getPaddingStart();
+        mBasePaddingTop = mNavigationBarContents.getPaddingTop();
+        mBasePaddingRight = mNavigationBarContents.getPaddingEnd();
+        mBasePaddingBottom = mNavigationBarContents.getPaddingBottom();
 
         updateOrientationViews();
         reloadNavIcons();

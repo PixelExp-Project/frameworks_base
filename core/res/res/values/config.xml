@@ -989,13 +989,6 @@
     -->
     <integer name="config_keyChordPowerVolumeUp">2</integer>
 
-    <!-- Control the behavior when the user long presses the back button.  Non-zero values are only
-         valid for watches as part of CDD/CTS.
-            0 - Nothing
-            1 - Go to voice assist
-    -->
-    <integer name="config_longPressOnBackBehavior">0</integer>
-
     <!-- Allows activities to be launched on a long press on power during device setup. -->
     <bool name="config_allowStartActivityForLongPressOnPowerInSetup">false</bool>
 
@@ -1232,24 +1225,6 @@
         flow. This should be true if gatekeeper / weaver credentials can still be checked after a
         factory reset. -->
     <bool name="config_enableCredentialFactoryResetProtection">true</bool>
-
-    <!-- Control the behavior when the user long presses the home button.
-            0 - Nothing
-            1 - Launch all apps intent
-            2 - Launch assist intent
-            3 - Launch notification panel
-         This needs to match the constants in
-         policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
-    -->
-    <integer name="config_longPressOnHomeBehavior">0</integer>
-
-    <!-- Control the behavior when the user double-taps the home button.
-            0 - Nothing
-            1 - Recent apps view in SystemUI
-         This needs to match the constants in
-         policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
-    -->
-    <integer name="config_doubleTapOnHomeBehavior">0</integer>
 
     <!-- Note: This setting is deprecated, please use
     config_screenBrightnessSettingMinimumFloat instead -->
@@ -1908,8 +1883,9 @@
          STREAM_MUSIC as if it's on TV platform. -->
     <bool name="config_single_volume">false</bool>
 
-    <!-- Flag indicating whether the volume panel should show remote sessions. -->
-    <bool name="config_volumeShowRemoteSessions">true</bool>
+    <!-- Flag indicating whether platform level volume adjustments are enabled for remote sessions
+         on grouped devices. -->
+    <bool name="config_volumeAdjustmentForRemoteGroupSessions">true</bool>
 
     <!-- Flag indicating that an outbound call must have a call capable phone account
          that has declared it can process the call's handle. -->

@@ -37,6 +37,7 @@ import android.annotation.TestApi;
 import android.annotation.UiContext;
 import android.annotation.UserIdInt;
 import android.app.ActivityManager;
+import android.app.AppLockManager;
 import android.app.GameManager;
 import android.app.IApplicationThread;
 import android.app.IServiceConnection;
@@ -5679,6 +5680,24 @@ public abstract class Context {
      * @see #getSystemService(String)
      */
     public static final String DISPLAY_HASH_SERVICE = "display_hash";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.os.PocketManager} for accessing and listening to device pocket state.
+     *
+     * @hide
+     * @see #getSystemService
+     * @see android.os.PocketManager
+     */
+    public static final String POCKET_SERVICE = "pocket";
+
+    /**
+     * Use with {@link #getSystemService(String)} to retrieve a
+     * {@link AppLockManager}.
+     *
+     * @see #getSystemService(String)
+     */
+    public static final String APP_LOCK_SERVICE = "app_lock";
 
     /**
      * Determine whether the given permission is allowed for a particular

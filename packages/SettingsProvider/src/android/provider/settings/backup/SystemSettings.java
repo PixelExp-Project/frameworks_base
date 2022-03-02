@@ -85,5 +85,6 @@ public class SystemSettings {
         Settings.System.ALARM_ALERT,
         Settings.System.NOTIFICATION_LIGHT_PULSE,
         Settings.System.QS_SHOW_BATTERY_ESTIMATE,
+        Settings.System.USE_OLD_MOBILETYPE,
     };
 }

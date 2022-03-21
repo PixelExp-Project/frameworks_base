@@ -5539,6 +5539,12 @@ public final class Settings {
          public static final String NETWORK_TRAFFIC_VIEW_LOCATION = "network_traffic_view_location";
 
         /**
+         * Gesture navbar radius mode.
+         * @hide
+         */
+        public static final String GESTURE_NAVBAR_RADIUS = "gesture_navbar_radius";
+
+        /**
          * Toast icon
          * @hide
          */

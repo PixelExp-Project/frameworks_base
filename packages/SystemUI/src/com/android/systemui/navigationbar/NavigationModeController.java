@@ -45,6 +45,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
 import com.android.systemui.util.settings.SecureSettings;
+import com.android.systemui.util.settings.SystemSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -65,6 +66,7 @@ public class NavigationModeController implements Dumpable {
     public interface ModeChangedListener {
         void onNavigationModeChanged(int mode);
         default void onNavigationHandleWidthModeChanged(int mode) {}
+        default void onNavigationHandleRadiusModeChanged(int mode) {}
     }
 
     private final Context mContext;
@@ -72,6 +74,7 @@ public class NavigationModeController implements Dumpable {
     private final IOverlayManager mOverlayManager;
     private final Executor mUiBgExecutor;
     private final SecureSettings mSecureSettings;
+    private final SystemSettings mSystemSettings;
 
     private ArrayList<ModeChangedListener> mListeners = new ArrayList<>();
 
@@ -110,7 +113,8 @@ public class NavigationModeController implements Dumpable {
             @UiBackground Executor uiBgExecutor,
             DumpManager dumpManager,
             @Main Handler mainHandler,
-            SecureSettings secureSettings) {
+            SecureSettings secureSettings,
+            SystemSettings systemSettings) {
         mContext = context;
         mCurrentUserContext = context;
         mOverlayManager = IOverlayManager.Stub.asInterface(
@@ -146,7 +150,17 @@ public class NavigationModeController implements Dumpable {
                             getNavigationHandleWidthMode()));
                 }
             }, UserHandle.USER_ALL);
-
+        mSystemSettings = systemSettings;
+        mSystemSettings.registerContentObserverForUser(
+            Settings.System.GESTURE_NAVBAR_RADIUS,
+            new ContentObserver(mainHandler) {
+                @Override
+                public void onChange(boolean selfChange) {
+                    mListeners.forEach(listener ->
+                        listener.onNavigationHandleRadiusModeChanged(
+                            getNavigationHandleRadiusMode()));
+                }
+            }, UserHandle.USER_ALL);
         updateCurrentInteractionMode(false /* notify */);
     }
 
@@ -208,6 +222,11 @@ public class NavigationModeController implements Dumpable {
 
     public int getNavigationHandleWidthMode() {
         return mSecureSettings.getIntForUser(Settings.Secure.GESTURE_NAVBAR_LENGTH_MODE,
+            0, UserHandle.USER_CURRENT);
+    }
+
+    public int getNavigationHandleRadiusMode() {
+        return mSystemSettings.getIntForUser(Settings.System.GESTURE_NAVBAR_RADIUS,
             0, UserHandle.USER_CURRENT);
     }
 

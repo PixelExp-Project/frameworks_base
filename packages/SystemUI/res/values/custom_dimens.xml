@@ -20,4 +20,9 @@
 
     <!-- Floating rotation button margin when on 2-button navbar mode -->
     <dimen name="floating_rotation_button_min_margin_navbar">60dp</dimen>
+
+    <!-- Additional gesture navbar radiuses -->
+    <dimen name="navigation_handle_radius_medium">2dp</dimen>
+    <dimen name="navigation_handle_radius_big">3dp</dimen>
+    <dimen name="navigation_handle_radius_large">4dp</dimen>
 </resources>

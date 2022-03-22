@@ -63,6 +63,7 @@ import com.android.systemui.statusbar.NotificationViewHierarchyManager;
 import com.android.systemui.statusbar.OperatorNameViewController;
 import com.android.systemui.statusbar.PulseExpansionHandler;
 import com.android.systemui.statusbar.SysuiStatusBarStateController;
+import com.android.systemui.statusbar.charging.WiredChargingRippleController;
 import com.android.systemui.statusbar.connectivity.NetworkController;
 import com.android.systemui.statusbar.events.SystemStatusAnimationScheduler;
 import com.android.systemui.statusbar.notification.DynamicPrivacyController;
@@ -250,7 +251,8 @@ public interface StatusBarGooglePhoneModule {
             SmartSpaceController smartSpaceController,
             WallpaperNotifier wallpaperNotifier,
             Optional<ReverseChargingViewController> reverseChargingViewController,
-            Lazy<Optional<NotificationVoiceReplyClient>> notificationVoiceReplyClient) {
+            Lazy<Optional<NotificationVoiceReplyClient>> notificationVoiceReplyClient,
+            WiredChargingRippleController wiredChargingRippleController) {
         return new StatusBarGoogle(
                 context, notificationsController, fragmentService, lightBarController, autoHideController,
                 statusBarWindowController, keyguardUpdateMonitor, statusBarSignalPolicy, pulseExpansionHandler,
@@ -276,6 +278,6 @@ public interface StatusBarGooglePhoneModule {
                 keyguardUnlockAnimationController, mainHandler, delayableExecutor, messageRouter, wallpaperManager,
                 unlockedScreenOffAnimationController, startingSurfaceOptional, tunerService, dumpManager, activityLaunchAnimator,
                 burnInProtectionController, smartSpaceController, wallpaperNotifier, reverseChargingViewController,
-                notificationVoiceReplyClient);
+                notificationVoiceReplyClient, wiredChargingRippleController);
     }
 }

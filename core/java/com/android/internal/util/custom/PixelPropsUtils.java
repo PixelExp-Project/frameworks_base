@@ -55,8 +55,7 @@ public class PixelPropsUtils {
             "com.android.chrome",
             "com.android.vending",
             "com.breel.wallpapers20",
-            "com.netflix.mediaclient",
-            "com.snapchat.android"
+            "com.netflix.mediaclient"
     };
 
     private static final String[] packagesToKeep = {

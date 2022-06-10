@@ -37,10 +37,10 @@ public class PixelPropsUtils {
 
     private static final Map<String, Object> propsToChangePixel5;
     private static final String[] packagesToChangePixel5 = {
-            "com.google.android.apps.recorder",
             "com.google.android.apps.turbo",
             "com.google.android.apps.turboadapter",
             "com.google.android.googlequicksearchbox",
+            "com.google.android.dialer",
             "com.google.android.tts",
             "com.google.audio.hearing.visualization.accessibility.scribe"
     };
@@ -72,7 +72,8 @@ public class PixelPropsUtils {
         "com.google.android.UltraCVM",
         "com.google.android.apps.cameralite",
         "com.google.ar.core",
-        "com.google.android.apps.wearables.maestro.companion"
+        "com.google.android.apps.wearables.maestro.companion",
+        "com.google.android.apps.recorder"
     };
 
     // Codenames for currently supported Pixels by Google
@@ -84,9 +85,7 @@ public class PixelPropsUtils {
             "bramble",
             "sunfish",
             "coral",
-            "flame",
-            "bonito",
-            "sargo"
+            "flame"
     };
 
     private static ArrayList<String> allProps = new ArrayList<>(Arrays.asList("BRAND", "MANUFACTURER", "DEVICE", "PRODUCT", "MODEL", "FINGERPRINT"));
@@ -102,14 +101,14 @@ public class PixelPropsUtils {
         propsToChangePixel6.put("DEVICE", "raven");
         propsToChangePixel6.put("PRODUCT", "raven");
         propsToChangePixel6.put("MODEL", "Pixel 6 Pro");
-        propsToChangePixel6.put("FINGERPRINT", "google/raven/raven:12/SP2A.220505.002/8353555:user/release-keys");
+        propsToChangePixel6.put("FINGERPRINT", "google/raven/raven:12/SQ3A.220605.009.B1/8650216:user/release-keys");
         propsToChangePixel5 = new HashMap<>();
         propsToChangePixel5.put("BRAND", "google");
         propsToChangePixel5.put("MANUFACTURER", "Google");
         propsToChangePixel5.put("DEVICE", "redfin");
         propsToChangePixel5.put("PRODUCT", "redfin");
         propsToChangePixel5.put("MODEL", "Pixel 5");
-        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:12/SP2A.220505.002/8353555:user/release-keys");
+        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:12/SQ3A.220605.009.A1/8643238:user/release-keys");
         propsToChangePixelXL = new HashMap<>();
         propsToChangePixelXL.put("BRAND", "google");
         propsToChangePixelXL.put("MANUFACTURER", "Google");
@@ -127,7 +126,7 @@ public class PixelPropsUtils {
             sIsGms = true;
         }
         boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
-        if (!isPixelDevice && 
+        if (!isPixelDevice &&
             ((packageName.startsWith("com.google.") && !Arrays.asList(packagesToKeep).contains(packageName))
                 || Arrays.asList(extraPackagesToChange).contains(packageName))) {
             Map<String, Object> propsToChange = propsToChangePixel6;
@@ -154,7 +153,7 @@ public class PixelPropsUtils {
         }
         if (isPixelDevice){
             if (packageName.equals("com.google.android.gms")){
-                setPropValue("MODEL", Build.MODEL + " ");
+                setPropValue("MODEL", "Pixel 5a");
             }
         }
         // Set proper indexing fingerprint

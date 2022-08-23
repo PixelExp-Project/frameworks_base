@@ -30,6 +30,7 @@ import java.util.Map;
 public class PixelPropsUtils {
 
     public static final String PACKAGE_GMS = "com.google.android.gms";
+    public static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String DEVICE = "org.pixelexperience.device";
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
     private static final boolean DEBUG = false;
@@ -135,6 +136,7 @@ public class PixelPropsUtils {
     private static ArrayList<String> allProps = new ArrayList<>(Arrays.asList("BRAND", "MANUFACTURER", "DEVICE", "PRODUCT", "MODEL", "FINGERPRINT"));
 
     private static volatile boolean sIsGms = false;
+    private static volatile boolean sIsFinsky = false;
 
     static {
         propsToKeep = new HashMap<>();
@@ -208,6 +210,9 @@ public class PixelPropsUtils {
         if (packageName.equals(PACKAGE_GMS) &&
                 processName.equals(PACKAGE_GMS + ".unstable")) {
             sIsGms = true;
+        }
+        if (packageName.equals(PACKAGE_FINSKY)) {
+            sIsFinsky = true;
         }
         boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
         if (!isPixelDevice &&
@@ -306,7 +311,7 @@ public class PixelPropsUtils {
 
     public static void onEngineGetCertificateChain() {
         // Check stack for SafetyNet
-        if (sIsGms && isCallerSafetyNet()) {
+        if (sIsGms && isCallerSafetyNet() || sIsFinsky) {
             throw new UnsupportedOperationException();
         }
     }

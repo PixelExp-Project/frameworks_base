@@ -233,8 +233,8 @@ public class PixelPropsUtils {
             }
         }
         if (sIsGms) {
-                setPropValue("FINGERPRINT", "google/angler/angler:6.0/MDB08L/2343525:user/release-keys");
-                setPropValue("MODEL", "angler");
+                setPropValue("FINGERPRINT", "google/walleye/walleye:8.1.0/OPM1.171019.011/4448085:user/release-keys");
+                setPropValue("MODEL", "walleye");
         }
         // Set proper indexing fingerprint
         if (packageName.equals("com.google.android.settings.intelligence")) {

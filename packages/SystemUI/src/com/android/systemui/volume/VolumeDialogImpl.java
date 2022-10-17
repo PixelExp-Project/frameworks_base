@@ -277,6 +277,9 @@ public class VolumeDialogImpl implements VolumeDialog,
     private ViewStub mODICaptionsTooltipViewStub;
     private View mODICaptionsTooltipView = null;
 
+    // Volume panel placement left or right
+    private boolean mVolumePanelOnLeft;
+
     private final boolean mUseBackgroundBlur;
     private Consumer<Boolean> mCrossWindowBlurEnabledListener;
     private BackgroundBlurDrawable mDialogRowsViewBackground;
@@ -285,8 +288,6 @@ public class VolumeDialogImpl implements VolumeDialog,
     // Variable to track the default row with which the panel is initially shown
     private VolumeRow mDefaultRow = null;
 
-    // Volume panel placement left or right
-    private boolean mVolumePanelOnLeft;
 
     // Volume panel expand state
     private boolean mExpanded;
@@ -340,6 +341,10 @@ public class VolumeDialogImpl implements VolumeDialog,
                         enabled ? dialogRowsViewColorAboveBlur : dialogRowsViewColorNoBlur);
                 mDialogRowsView.invalidate();
             };
+        }
+
+        if (!mShowActiveStreamOnly) {
+            mVolumePanelOnLeft = mContext.getResources().getBoolean(R.bool.config_audioPanelOnLeftSide);;
         }
 
         initDimens();
@@ -658,7 +663,6 @@ public class VolumeDialogImpl implements VolumeDialog,
 
             setGravity(mODICaptionsView, Gravity.LEFT);
             setLayoutGravity(mODICaptionsView, Gravity.LEFT);
-
             mExpandRows.setRotation(-90);
         }
 
@@ -1689,7 +1693,6 @@ public class VolumeDialogImpl implements VolumeDialog,
             final boolean isActive = row == activeRow;
             final boolean isExpandableRow = isExpandableRowH(row);
             final boolean shouldBeVisible = shouldBeVisibleH(row, activeRow);
-
             if (!isExpandableRow) {
                 Util.setVisOrGone(row.view, shouldBeVisible);
             } else if (!mExpanded) {
@@ -1961,7 +1964,7 @@ public class VolumeDialogImpl implements VolumeDialog,
 
     protected void onStateChangedH(State state) {
         if (D.BUG) Log.d(TAG, "onStateChangedH() state: " + state.toString());
-        if (mState != null && state != null
+        if (mShowing && mState != null && state != null
                 && mState.ringerModeInternal != -1
                 && mState.ringerModeInternal != state.ringerModeInternal
                 && state.ringerModeInternal == AudioManager.RINGER_MODE_VIBRATE) {

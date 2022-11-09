@@ -29,6 +29,7 @@ import java.util.Map;
 
 public class PixelPropsUtils {
 
+    public static final String PACKAGE_GMS = "com.google.android.gms";
     private static final String DEVICE = "org.pixelexperience.device";
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
     private static final boolean DEBUG = false;
@@ -118,21 +119,19 @@ public class PixelPropsUtils {
 
     // Codenames for currently supported Pixels by Google
     private static final String[] pixelCodenames = {
-            "cheetah",
-            "panther",
-            "bluejay",
             "oriole",
             "raven",
-            "barbet",
             "redfin",
+            "barbet",
             "bramble",
-            "sunfish"
+            "sunfish",
+            "coral",
+            "flame"
     };
 
     private static ArrayList<String> allProps = new ArrayList<>(Arrays.asList("BRAND", "MANUFACTURER", "DEVICE", "PRODUCT", "MODEL", "FINGERPRINT"));
 
     private static volatile boolean sIsGms = false;
-    private static volatile boolean sIsFinsky = false;
 
     static {
         propsToKeep = new HashMap<>();
@@ -193,20 +192,19 @@ public class PixelPropsUtils {
         }
     }
 
-    public static void setProps(String packageName) {
-        if (packageName == null || packageName.isEmpty()) {
+    public static void setProps(Application app) {
+        final String packageName = app.getPackageName();
+        final String processName = app.getProcessName();
+        if (packageName == null) {
             return;
         }
         if (packageName.startsWith("com.samsung.android.")){
             setPropsForSamsung(packageName);
             return;
         }
-        if (packageName.equals("com.android.vending")) {
-            sIsFinsky = true;
-            return;
-        }
-        if (Arrays.asList(packagesToKeep).contains(packageName)) {
-            return;
+        if (packageName.equals(PACKAGE_GMS) &&
+                processName.equals(PACKAGE_GMS + ".unstable")) {
+            sIsGms = true;
         }
         boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
         if (!isPixelDevice &&
@@ -234,14 +232,9 @@ public class PixelPropsUtils {
                 setPropValue(key, value);
             }
         }
-        if (packageName.equals("com.google.android.gms")) {
-            final String processName = Application.getProcessName();
-            if (processName.equals("com.google.android.gms.unstable")) {
-                sIsGms = true;
+        if (sIsGms) {
                 setPropValue("FINGERPRINT", "google/walleye/walleye:8.1.0/OPM1.171019.011/4448085:user/release-keys");
                 setPropValue("MODEL", "walleye");
-            }
-            return;
         }
         // Set proper indexing fingerprint
         if (packageName.equals("com.google.android.settings.intelligence")) {
@@ -311,11 +304,6 @@ public class PixelPropsUtils {
     public static void onEngineGetCertificateChain() {
         // Check stack for SafetyNet
         if (sIsGms && isCallerSafetyNet()) {
-            throw new UnsupportedOperationException();
-        }
-        
-        // Check stack for PlayIntegrity
-        if (sIsFinsky) {
             throw new UnsupportedOperationException();
         }
     }
